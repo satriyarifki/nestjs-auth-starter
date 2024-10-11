@@ -3,10 +3,12 @@ import { AuthService } from './auth.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { Public } from './public-strategy';
+import * as bcrypt from 'bcrypt';
 
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
+  saltOrRounds: number = 10;
   constructor(private authService: AuthService) {}
 
   @Public()
@@ -31,10 +33,11 @@ export class AuthController {
     description: 'The record found',
     type: [CreateUserDto],
   })
-  signUp(@Body() signUpDto: Record<string, any>) {
+  async signUp(@Body() signUpDto: Record<string, any>) {
+    const hashPass = await bcrypt.hash(signUpDto.password, this.saltOrRounds);
     const payload: CreateUserDto = {
       email: signUpDto.email,
-      password: signUpDto.password,
+      password: hashPass,
       name: signUpDto.name,
       gender: signUpDto.gender,
       createdat: new Date(),
